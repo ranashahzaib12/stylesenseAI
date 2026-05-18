@@ -48,63 +48,52 @@ const useWeather = (): WeatherHookResult => {
         return;
     }
 
+    let gpsUpgraded = false; // prevent overwriting GPS result with IP result
+
     const applyData = (data: any, fallback = false) => {
         const parsed = parseWeatherResponse(data);
         setWeather(parsed.weather);
         setLocation(parsed.location);
         setIsFallback(fallback);
+        setError(null);
         setLoading(false);
     };
 
-    // IP-based fallback — used when GPS is denied or unavailable
-    const tryIPFallback = async (reason: string) => {
-        try {
-            const data = await fetchFromWeatherAPI('auto:ip');
-            applyData(data, true);
-            setError(`Using approximate location (${reason})`);
-        } catch {
-            setWeather({ temp: 18, description: 'Mild day', icon: 'https://cdn.weatherapi.com/weather/64x64/day/116.png' });
-            setLocation({ name: 'Unknown', country: '', region: '' });
-            setIsFallback(true);
-            setError(reason);
-            setLoading(false);
-        }
-    };
-
-    if (!navigator.geolocation) {
-        tryIPFallback('Geolocation is not supported by this browser.');
-        return;
-    }
-
-    const onSuccess = async (position: GeolocationPosition) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        try {
-            const data = await fetchFromWeatherAPI(`${latitude},${longitude}`);
-            // If GPS accuracy is poor (>5 km), note it but still use the result
-            const isFallbackAccuracy = accuracy > 5000;
-            applyData(data, isFallbackAccuracy);
-            if (isFallbackAccuracy) {
-                setError('Location accuracy is low — weather may not be precise.');
+    // Step 1: Load IP-based weather immediately — no delay, no permission needed.
+    // This gives users instant weather so the dashboard never feels broken.
+    fetchFromWeatherAPI('auto:ip')
+        .then(data => {
+            if (!gpsUpgraded) applyData(data, false); // not a fallback — IP weather is valid
+        })
+        .catch(() => {
+            if (!gpsUpgraded) {
+                setWeather({ temp: 18, description: 'Mild day', icon: 'https://cdn.weatherapi.com/weather/64x64/day/116.png' });
+                setLocation({ name: 'Unknown', country: '', region: '' });
+                setIsFallback(true);
+                setError('Weather service unavailable.');
+                setLoading(false);
             }
-        } catch (e) {
-            await tryIPFallback(e instanceof Error ? e.message : 'Weather fetch failed.');
-        }
-    };
+        });
 
-    const onError = (geoError: GeolocationPositionError) => {
-        const reasons: Record<number, string> = {
-            1: 'Location permission denied.',
-            2: 'Location unavailable.',
-            3: 'Location request timed out.',
-        };
-        tryIPFallback(reasons[geoError.code] || geoError.message);
-    };
-
-    navigator.geolocation.getCurrentPosition(onSuccess, onError, {
-        enableHighAccuracy: true,   // use GPS when available
-        timeout: 10000,             // 10-second timeout
-        maximumAge: 300000,         // accept a cached position up to 5 min old
-    });
+    // Step 2: Silently try GPS in parallel. If granted, upgrade to precise weather.
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const data = await fetchFromWeatherAPI(`${latitude},${longitude}`);
+                    gpsUpgraded = true;
+                    applyData(data, false);
+                } catch {
+                    // GPS succeeded but weather fetch failed — IP result already shown, keep it
+                }
+            },
+            () => {
+                // GPS denied/unavailable — IP result is already showing, nothing to do
+            },
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+        );
+    }
 
   }, []);
 

@@ -192,11 +192,10 @@ const Dashboard: React.FC = () => {
             </div>
         </div>
       
-      {weatherIsFallback && (
+      {weatherIsFallback && location?.name === 'Unknown' && (
         <div className="p-4 mb-6 bg-warning/10 border-l-4 border-warning text-textPrimary rounded-r-lg shadow-md">
-           <p className="font-bold text-warning">⚠️ Live Weather Unavailable</p>
-           <p className="mt-1 text-sm text-textSecondary">Recommendations are being shown for mild weather conditions.</p>
-           {weatherError && <p className="mt-2 text-xs opacity-80"><strong>Reason:</strong> {weatherError}</p>}
+           <p className="font-bold text-warning">⚠️ Weather Unavailable</p>
+           <p className="mt-1 text-sm text-textSecondary">Could not reach the weather service. Recommendations are based on general styles.</p>
         </div>
       )}
 
