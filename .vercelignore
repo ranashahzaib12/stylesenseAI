@@ -1,0 +1,10 @@
+backend/
+node_modules/
+dist/
+__tests__/
+__mocks__/
+*.test.*
+*.spec.*
+hf-space/
+modal/
+shirt-tryon-frontend/
