@@ -8,8 +8,8 @@
 // If a key is missing or is the placeholder value, the corresponding feature
 // will use fallback data or be disabled.
 // -----------------------------------------------------------------------------
-
-/**
+  
+/** 
  * Your API key from WeatherAPI.com.
  * This is used to fetch real-time weather data to personalize recommendations.
  * @see https://www.weatherapi.com/
