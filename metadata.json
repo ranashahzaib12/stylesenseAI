@@ -1,0 +1,8 @@
+{
+  "name": "virtaul-Style-PRO",
+  "description": "An AI-powered fashion assistant offering personalized outfit recommendations, virtual try-on, text-to-outfit generation, and a style chatbot.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
