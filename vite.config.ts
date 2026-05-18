@@ -31,6 +31,17 @@ export default defineConfig(({ mode }) => {
         // AR Try-On: Express backend URL (only needed if NOT using VITE_MODAL_URL)
         'process.env.VITE_BACKEND_URL': JSON.stringify(env.VITE_BACKEND_URL || ''),
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'vendor-react': ['react', 'react-dom'],
+              'vendor-supabase': ['@supabase/supabase-js'],
+              'vendor-openai': ['openai'],
+            },
+          },
+        },
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
