@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import type { Outfit } from '../types';
+import { mlRecommend } from './mlRecommend';
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -73,43 +74,28 @@ const keywordFallback = (prompt: string, outfits: Outfit[]): Outfit[] => {
 };
 
 export const findMatchingOutfits = async (prompt: string, outfits: Outfit[]): Promise<Outfit[]> => {
-  if (!prompt || outfits.length === 0) return [];
-
-  const simplifiedOutfits = outfits.map(({ id, name, category, gender }) => ({ id, name, category, gender }));
+  if (!prompt) return [];
 
   try {
-    const openai = getClient();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a fashion assistant. Select the 2 best outfits from the provided catalog that best match the user's style request.
-Be flexible: if there is no exact match, find the closest option based on category, style vibe, and gender.
-Always return the 2 most relevant items — never return an empty list unless the catalog itself is empty.
-Return ONLY a JSON object: { "outfits": [{ "id": number }, ...] }`,
-        },
-        {
-          role: 'user',
-          content: `User request: "${prompt}"\n\nAvailable catalog:\n${JSON.stringify(simplifiedOutfits)}`,
-        },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.4,
-    });
-
-    const parsed = JSON.parse(response.choices[0].message.content || '{"outfits":[]}');
-    const matchedIds: number[] = (parsed.outfits || []).map((o: { id: number }) => o.id);
-
-    const aiResults = outfits.filter(o => matchedIds.includes(o.id)).slice(0, 2);
-
-    // If AI returns nothing (it shouldn't, but just in case), use keyword fallback
-    if (aiResults.length === 0) return keywordFallback(prompt, outfits);
-    return aiResults;
-
+    // Use the trained ML pickle model (TF-IDF → SVD → KMeans hybrid scoring)
+    const results = mlRecommend(prompt, 3);
+    return results.map(r => ({
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      imageUrl: r.imageUrl,
+      style: r.style,
+      color: r.color,
+      pattern: r.pattern,
+      fabric: r.fabric,
+      fit: r.fit,
+      occasion: r.occasion,
+      description: r.description,
+      cluster: r.cluster,
+    }));
   } catch (error) {
-    console.error('AI outfit search failed, falling back to keywords:', error);
-    return keywordFallback(prompt, outfits);
+    console.error('ML recommendation failed, falling back to keywords:', error);
+    return keywordFallback(prompt, outfits.length ? outfits : []);
   }
 };
 

@@ -5,7 +5,16 @@ export interface Outfit {
   name: string;
   category: string;
   imageUrl: string;
-  gender: 'Men' | 'Women';
+  gender?: 'Men' | 'Women'; // optional — items without gender show for all users
+  // Extended ML model fields
+  style?: string;
+  color?: string;
+  pattern?: string;
+  fabric?: string;
+  fit?: string;
+  occasion?: string;
+  description?: string;
+  cluster?: number;
 }
 
 export interface Garment {

@@ -119,17 +119,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children, setActiveTab
   const toggleTheme = () => setIsDarkMode(prev => !prev);
 
 
-  // Fetch products once on mount
+  // Load the static ML shirt catalog (from outfit_finder_model.pkl parameters)
   useEffect(() => {
     const loadProducts = async () => {
-        try {
-            const data = await fetchRecommendations();
-            setProducts(data);
-        } catch (error) {
-            console.error("Failed to load global products:", error);
-        } finally {
-            setProductsLoading(false);
-        }
+      try {
+        const data = await fetchRecommendations();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to load shirt catalog:', error);
+      } finally {
+        setProductsLoading(false);
+      }
     };
     loadProducts();
   }, []);

@@ -32,12 +32,14 @@ export default defineConfig(({ mode }) => {
         'process.env.VITE_BACKEND_URL': JSON.stringify(env.VITE_BACKEND_URL || ''),
       },
       build: {
+        chunkSizeWarningLimit: 600,
         rollupOptions: {
           output: {
-            manualChunks: {
-              'vendor-react': ['react', 'react-dom'],
-              'vendor-supabase': ['@supabase/supabase-js'],
-              'vendor-openai': ['openai'],
+            manualChunks(id) {
+              if (id.includes('modelParams.json')) return 'ml-model-data';
+              if (id.includes('react-dom') || id.includes('react/')) return 'vendor-react';
+              if (id.includes('@supabase')) return 'vendor-supabase';
+              if (id.includes('openai')) return 'vendor-openai';
             },
           },
         },
