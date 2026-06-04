@@ -55,7 +55,7 @@ describe('Onboarding Component', () => {
 
     // Step 1
     fireEvent.change(screen.getByLabelText(/how do you identify/i), { target: { value: 'Women' } });
-    fireEvent.click(screen.getByText('Chic'));
+    fireEvent.click(screen.getByText('Classic'));
     fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
 
     // Step 2
@@ -64,7 +64,7 @@ describe('Onboarding Component', () => {
 
     // Check if save function was called with the full, correct quiz details object
     expect(mockSaveQuizDetails).toHaveBeenCalledWith(expect.objectContaining({
-      vibe: 'Chic',
+      vibe: 'Classic',
       gender: 'Women',
       favoriteColors: [],
       bodyType: '',

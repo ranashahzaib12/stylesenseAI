@@ -40,7 +40,7 @@ export interface LocationData {
 }
 
 export interface QuizDetails {
-    vibe: 'Casual' | 'Chic' | 'Edgy' | 'Bohemian' | '';
+    vibe: 'Casual' | 'Classic' | 'Elegant' | 'Formal' | '';
     bodyType: 'Hourglass' | 'Pear' | 'Apple' | 'Rectangle' | '';
     gender: 'Men' | 'Women' | 'Prefer Not To Say' | '';
     heightFt?: number;
