@@ -386,7 +386,7 @@ const Dashboard: React.FC = () => {
         <div className="text-center sm:text-left">
           <h2 className="text-3xl font-bold mb-1 text-textPrimary capitalize">Welcome, {userName}!</h2>
           <p className="text-md text-textSecondary">
-            {isQuizCompleted ? 'Your personal style hub — 30 full-sleeve shirts, ML-powered.' : 'Complete your Style Quiz for personalized ML picks.'}
+            {isQuizCompleted ? 'Your personal style hub — ML-powered recommendations.' : 'Complete your Style Quiz for personalized ML picks.'}
           </p>
         </div>
         <div className="flex items-center gap-3 bg-surface/90 backdrop-blur-sm px-4 py-2.5 rounded-xl shadow-sm border border-textSecondary/10 transition-all hover:shadow-md self-center sm:self-start flex-shrink-0">
@@ -458,10 +458,10 @@ const Dashboard: React.FC = () => {
       {/* Full Catalog */}
       <div className="mb-4">
         <h3 className="text-2xl font-bold text-textPrimary text-center mb-1">
-          Full Shirt Collection
+          Full Collection
         </h3>
         <p className="text-sm text-textSecondary text-center mb-6">
-          {filteredProducts.length} full-sleeve shirts · Click any shirt to see full details
+          {filteredProducts.length} items · Click any piece to see full details
         </p>
       </div>
 
