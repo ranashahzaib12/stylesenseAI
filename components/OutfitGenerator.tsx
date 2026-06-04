@@ -26,7 +26,7 @@ const OutfitCard: React.FC<{ outfit: Outfit; rank: number }> = ({ outfit, rank }
           alt={outfit.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Image+Unavailable';
+            (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/400x400?text=Image+Unavailable';
           }}
         />
         <div className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">

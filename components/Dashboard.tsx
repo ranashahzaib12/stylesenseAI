@@ -73,7 +73,7 @@ const ProductDetailModal: React.FC<DetailModalProps> = ({ outfit, mlScore, onClo
               alt={outfit.name}
               className="w-full h-72 md:h-full object-cover"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/400x500?text=No+Image';
+                (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/400x500?text=No+Image';
               }}
             />
           </div>
@@ -206,7 +206,7 @@ const OutfitCard: React.FC<OutfitCardProps> = ({ outfit, recommendationReason, m
           alt={outfit.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Image+Unavailable';
+            (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/400x400?text=Image+Unavailable';
           }}
         />
         {/* Hover overlay */}
