@@ -3,10 +3,10 @@ import { useAppContext } from '../contexts/AppContext';
 import type { QuizDetails } from '../types';
 
 const STYLE_OPTIONS: { [key: string]: string } = {
-    'Casual':  'https://res.cloudinary.com/du6dsvari/image/upload/v1780584894/stylesense-vibes/casual.jpg',
-    'Classic': 'https://res.cloudinary.com/du6dsvari/image/upload/v1780584895/stylesense-vibes/classic.jpg',
-    'Elegant': 'https://res.cloudinary.com/du6dsvari/image/upload/v1780584896/stylesense-vibes/elegant.jpg',
-    'Formal':  'https://res.cloudinary.com/du6dsvari/image/upload/v1780584897/stylesense-vibes/formal.jpg',
+    'Casual':  'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/casual.jpg',
+    'Classic': 'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/classic.jpg',
+    'Elegant': 'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/elegant.jpg',
+    'Formal':  'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/formal.jpg',
 };
 const GENDERS: QuizDetails['gender'][] = ['Women', 'Men', 'Prefer Not To Say'];
 
