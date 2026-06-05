@@ -229,6 +229,11 @@ GARMENT: "${garmentName}"
 • FIT: The garment drapes and fits naturally on the person's body with realistic fabric physics and natural wrinkles.
 • PLACEMENT: Position and align the garment correctly on the person's body based on its clothing type (upper body, lower body, or full outfit).
 
+═══ IMPORTANT NOTE ON IMAGE 2 ═══
+• Image 2 is the GARMENT SOURCE ONLY. If Image 2 shows a model wearing the garment, completely IGNORE that model's face, body, and identity.
+• Extract ONLY the garment's color, pattern, texture, design details, and construction from Image 2.
+• The ONLY person in the output must be the person from Image 1.
+
 ═══ OUTPUT REQUIREMENTS ═══
 • Fully photorealistic — must look exactly like a real fashion photograph taken of the person
 • Same image composition, framing, angle, and crop as Image 1
