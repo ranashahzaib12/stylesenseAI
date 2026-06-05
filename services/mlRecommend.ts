@@ -16,6 +16,7 @@ interface ShirtRecord {
   description: string;
   image_url: string;
   cluster: number;
+  gender?: 'Men' | 'Women';
 }
 
 interface ModelData {
@@ -52,6 +53,7 @@ export interface ShirtCatalogItem {
   name: string;
   category: string;
   imageUrl: string;
+  gender?: 'Men' | 'Women';
   style: string;
   color: string;
   pattern: string;
@@ -297,6 +299,7 @@ export function getShirtCatalog(): ShirtCatalogItem[] {
     name: s.name,
     category: COLD_FABRICS.some(f => s.fabric.toLowerCase().includes(f)) ? 'Cold' : 'Any',
     imageUrl: s.image_url,
+    gender: s.gender,
     style: s.style,
     color: s.color,
     pattern: s.pattern,

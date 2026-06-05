@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Upload scripts (contain API credentials)
+scripts/
