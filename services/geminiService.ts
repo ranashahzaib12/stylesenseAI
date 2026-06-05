@@ -237,11 +237,11 @@ GARMENT: "${garmentName}"
 • The final image should be visually indistinguishable from a real photograph of the person wearing the garment`;
 
   const formData = new FormData();
-  formData.append('model', 'gpt-image-1');
+  formData.append('model', 'gpt-image-2');
   formData.append('image[]', personFile, 'person.png');
   formData.append('image[]', garmentFile, 'garment.png');
   formData.append('prompt', prompt);
-  formData.append('size', '1024x1024');
+  formData.append('size', '1024x1536');
   formData.append('quality', 'high');
 
   const controller = new AbortController();
