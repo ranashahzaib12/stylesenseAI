@@ -236,6 +236,9 @@ GARMENT: "${garmentName}"
 • No cartoon, illustration, painting, or AI-generated aesthetic — pure photorealism only
 • The final image should be visually indistinguishable from a real photograph of the person wearing the garment`;
 
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OpenAI API key is not configured.');
+
   const formData = new FormData();
   formData.append('model', 'gpt-image-2');
   formData.append('image[]', personFile, 'person.png');
@@ -243,6 +246,7 @@ GARMENT: "${garmentName}"
   formData.append('prompt', prompt);
   formData.append('size', '1024x1536');
   formData.append('quality', 'high');
+  formData.append('response_format', 'b64_json');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 180_000);
@@ -250,7 +254,7 @@ GARMENT: "${garmentName}"
   try {
     const res = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      headers: { Authorization: `Bearer ${apiKey}` },
       body: formData,
       signal: controller.signal,
     });
@@ -258,14 +262,21 @@ GARMENT: "${garmentName}"
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      const msg = err?.error?.message || `Try-on failed (${res.status}).`;
-      throw new Error(msg);
+      let errorBody: { error?: { message?: string; code?: string; type?: string } } = {};
+      try { errorBody = await res.json(); } catch { /* ignore parse error */ }
+      const detail = errorBody?.error?.message || `HTTP ${res.status}`;
+      console.error('[TryOn] OpenAI API error:', res.status, errorBody);
+      throw new Error(`Try-on failed: ${detail}`);
     }
 
     const data = await res.json();
     const b64 = data.data?.[0]?.b64_json;
-    if (!b64) throw new Error('The AI returned no image. Please try again.');
+
+    if (!b64) {
+      console.error('[TryOn] Unexpected response shape:', JSON.stringify(data).slice(0, 500));
+      throw new Error('The AI returned no image. Please try again.');
+    }
+
     return `data:image/png;base64,${b64}`;
   } catch (error) {
     clearTimeout(timeoutId);
@@ -282,10 +293,6 @@ export const classifyGarmentCategory = async (
 ): Promise<'upper_body' | 'lower_body' | 'dresses'> => {
   try {
     const openai = getClient();
-    const imageData = garmentImageSource.startsWith('data:')
-      ? garmentImageSource
-      : garmentImageSource;
-
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -301,7 +308,7 @@ dresses — for dresses, jumpsuits, rompers, overalls`,
             },
             {
               type: 'image_url',
-              image_url: { url: imageData, detail: 'low' },
+              image_url: { url: garmentImageSource, detail: 'low' },
             },
           ],
         },
