@@ -246,7 +246,6 @@ GARMENT: "${garmentName}"
   formData.append('prompt', prompt);
   formData.append('size', '1024x1536');
   formData.append('quality', 'high');
-  formData.append('response_format', 'b64_json');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 180_000);
