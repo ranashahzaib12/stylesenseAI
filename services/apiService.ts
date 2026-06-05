@@ -1,8 +1,9 @@
 import type { Outfit } from '../types';
 import { getShirtCatalog } from './mlRecommend';
+import { generateAIEnhancedTryOn, classifyGarmentCategory } from './geminiService';
 
 /**
- * Returns the 30-shirt catalog sourced from the ML model (outfit_finder_model.pkl).
+ * Returns the shirt catalog sourced from the ML model (outfit_finder_model.pkl).
  * No external API call — data is embedded from the trained model parameters.
  */
 export const fetchRecommendations = async (): Promise<Outfit[]> => {
@@ -11,11 +12,14 @@ export const fetchRecommendations = async (): Promise<Outfit[]> => {
 
 
 // ---------------------------------------------------------------------------
-// AR Virtual Try-On — powered by OOTDiffusion on Modal A10G GPU
+// AR Virtual Try-On — powered by OpenAI gpt-image-1
 // ---------------------------------------------------------------------------
-
-const MODAL_URL = (process.env.VITE_MODAL_URL || '').replace(/\/+$/, '');
-const BACKEND_URL = (process.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
+// The original OOTDiffusion / Modal A10G GPU implementation is preserved in
+// the comment block at the bottom of this file. To restore it:
+//   1. Uncomment the "Legacy Modal implementation" section below.
+//   2. Set VITE_MODAL_URL in .env.local.
+//   3. Swap the function bodies back.
+// ---------------------------------------------------------------------------
 
 export type TryOnCategory = 'upper_body' | 'lower_body' | 'dresses';
 
@@ -25,10 +29,10 @@ function normalizeError(error: unknown): string {
     const msg = String(err?.message || error || '');
 
     if (name === 'AbortError' || msg.toLowerCase().includes('abort')) {
-        return 'Generation timed out (>11 min). The GPU may be cold-starting — please retry.';
+        return 'Generation timed out. Please try again.';
     }
     if (msg.includes('timed out') || msg.includes('timeout') || msg.includes('TimeoutError')) {
-        return 'Generation timed out (>11 min). The GPU may be cold-starting — please retry.';
+        return 'Generation timed out. Please try again.';
     }
     if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED') || msg.includes('fetch')) {
         return 'Could not reach the try-on service. Please check your connection and retry.';
@@ -36,7 +40,43 @@ function normalizeError(error: unknown): string {
     return msg || 'Virtual try-on failed. Please retry.';
 }
 
+/**
+ * Performs virtual try-on using OpenAI gpt-image-1.
+ * Accepts an optional garmentName for a more precise prompt.
+ */
 export const performVitonHDTryOn = async (
+    personImageDataUrl: string,
+    garmentDataUrl: string,
+    _category: TryOnCategory = 'upper_body',
+    garmentName = 'clothing garment',
+): Promise<string> => {
+    try {
+        return await generateAIEnhancedTryOn(personImageDataUrl, garmentDataUrl, garmentName);
+    } catch (error) {
+        throw new Error(normalizeError(error));
+    }
+};
+
+/**
+ * Classifies a garment image into upper_body / lower_body / dresses
+ * using GPT-4o-mini vision. Falls back to 'upper_body' on any error.
+ */
+export const detectGarmentCategory = async (
+    garmentDataUrl: string,
+): Promise<TryOnCategory> => {
+    return classifyGarmentCategory(garmentDataUrl);
+};
+
+
+// ---------------------------------------------------------------------------
+// Legacy: Original OOTDiffusion implementation via Modal A10G GPU
+// To restore: set VITE_MODAL_URL in .env.local and swap the function bodies.
+// ---------------------------------------------------------------------------
+/*
+const MODAL_URL = (process.env.VITE_MODAL_URL || '').replace(/\/+$/, '');
+const BACKEND_URL = (process.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
+
+export const performVitonHDTryOn_Modal = async (
     personImageDataUrl: string,
     garmentDataUrl: string,
     category: TryOnCategory = 'upper_body',
@@ -74,7 +114,7 @@ export const performVitonHDTryOn = async (
                 const body = await response.json();
                 if (typeof body?.detail === 'string' && body.detail.trim()) detail = body.detail.slice(0, 300);
                 else if (typeof body?.error === 'string' && body.error.trim()) detail = body.error.slice(0, 300);
-            } catch { /* ignore */ }
+            } catch { }
             throw new Error(detail);
         }
 
@@ -90,7 +130,7 @@ export const performVitonHDTryOn = async (
     }
 };
 
-export const detectGarmentCategory = async (
+export const detectGarmentCategory_Modal = async (
     garmentDataUrl: string,
 ): Promise<TryOnCategory> => {
     try {
@@ -119,3 +159,4 @@ export const detectGarmentCategory = async (
         return 'upper_body';
     }
 };
+*/

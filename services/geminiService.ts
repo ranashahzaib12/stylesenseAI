@@ -198,7 +198,7 @@ If invalid: reason = specific problem (e.g. "Only the face is visible — we nee
   }
 };
 
-// ─── Feature 2: AI-enhanced try-on ─────────────────────────────────────────────
+// ─── Feature 2: AI-powered virtual try-on ──────────────────────────────────────
 
 export const generateAIEnhancedTryOn = async (
   personImageSource: string,
@@ -210,20 +210,31 @@ export const generateAIEnhancedTryOn = async (
     fetchImageAsFile(garmentImageSource, 'garment.png'),
   ]);
 
-  const prompt = `Virtual fashion try-on task. Two images are provided:
-— Image 1: a person
-— Image 2: a clothing garment called "${garmentName}"
+  const prompt = `You are a professional virtual fashion try-on system. Your sole task is to dress the person in Image 1 wearing the exact garment shown in Image 2.
 
-Apply the garment from Image 2 onto the person in Image 1 as a photorealistic try-on result.
+GARMENT: "${garmentName}"
 
-STRICT RULES — do not break any of these:
-1. The person's face must be IDENTICAL to Image 1 — no changes at all
-2. The person's hair, skin tone, body shape, and pose must remain exactly as in Image 1
-3. The background and lighting must remain exactly as in Image 1
-4. The garment must match Image 2 exactly — same color, pattern, texture, cut, and every design detail
-5. The garment should fit naturally and realistically on the person's body
-6. Do not add any text, watermarks, logos, or extra elements
-7. Output must be photorealistic — not illustrated or cartoon-like`;
+═══ PRESERVE EXACTLY — DO NOT CHANGE ANY OF THESE ═══
+• FACE & IDENTITY: The person's face, every facial feature, expression, and skin tone must be 100% pixel-perfect identical to Image 1. No alterations, no beautification, no changes whatsoever.
+• BODY: Same body shape, proportions, size, and exact pose as Image 1. Do not change height, weight, posture, or any body part.
+• HAIR: Exact same hairstyle, hair color, and hair length as Image 1. No changes.
+• BACKGROUND: Keep the exact background, environment, scenery, and lighting from Image 1 completely unchanged.
+• ACCESSORIES: Preserve all accessories the person wears in Image 1 (glasses, jewelry, watches, hats, bags) exactly as they appear.
+• OTHER CLOTHING: Any clothing item NOT being replaced (pants, shoes, socks, jacket, etc.) must remain exactly as in Image 1.
+
+═══ APPLY THE GARMENT WITH PERFECT FIDELITY ═══
+• COLOR: The garment must be the precise, exact color(s) from Image 2 — not an approximation or similar shade, the exact same hue, saturation, and brightness.
+• PATTERN & TEXTURE: Every stripe, print, graphic, logo, embroidery, texture, weave pattern, or design detail from Image 2 must be reproduced with complete accuracy.
+• DESIGN: Match the exact cut, neckline, collar style, sleeve length and shape, hemline, button style, zipper, pockets, and every structural design element.
+• FIT: The garment drapes and fits naturally on the person's body with realistic fabric physics and natural wrinkles.
+• PLACEMENT: Position and align the garment correctly on the person's body based on its clothing type (upper body, lower body, or full outfit).
+
+═══ OUTPUT REQUIREMENTS ═══
+• Fully photorealistic — must look exactly like a real fashion photograph taken of the person
+• Same image composition, framing, angle, and crop as Image 1
+• Absolutely no added text, watermarks, borders, frames, or graphic overlays
+• No cartoon, illustration, painting, or AI-generated aesthetic — pure photorealism only
+• The final image should be visually indistinguishable from a real photograph of the person wearing the garment`;
 
   const formData = new FormData();
   formData.append('model', 'gpt-image-1');
@@ -231,20 +242,78 @@ STRICT RULES — do not break any of these:
   formData.append('image[]', garmentFile, 'garment.png');
   formData.append('prompt', prompt);
   formData.append('size', '1024x1024');
+  formData.append('quality', 'high');
 
-  const res = await fetch('https://api.openai.com/v1/images/edits', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-    body: formData,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 180_000);
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `AI enhancement failed (${res.status}).`);
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/edits', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: formData,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err?.error?.message || `Try-on failed (${res.status}).`;
+      throw new Error(msg);
+    }
+
+    const data = await res.json();
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) throw new Error('The AI returned no image. Please try again.');
+    return `data:image/png;base64,${b64}`;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    const err = error as Error;
+    if (err.name === 'AbortError') throw new Error('Try-on timed out after 3 minutes. Please try again.');
+    throw error;
   }
+};
 
-  const data = await res.json();
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) throw new Error('No image was returned by the AI enhancer.');
-  return `data:image/png;base64,${b64}`;
+// ─── Feature 3: Garment category classification ─────────────────────────────────
+
+export const classifyGarmentCategory = async (
+  garmentImageSource: string,
+): Promise<'upper_body' | 'lower_body' | 'dresses'> => {
+  try {
+    const openai = getClient();
+    const imageData = garmentImageSource.startsWith('data:')
+      ? garmentImageSource
+      : garmentImageSource;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Classify this clothing item. Reply with ONLY one of these exact values, nothing else:
+upper_body — for tops, shirts, t-shirts, blouses, jackets, hoodies, sweaters, coats
+lower_body — for pants, jeans, shorts, skirts, trousers, leggings
+dresses — for dresses, jumpsuits, rompers, overalls`,
+            },
+            {
+              type: 'image_url',
+              image_url: { url: imageData, detail: 'low' },
+            },
+          ],
+        },
+      ],
+      max_tokens: 15,
+    });
+
+    const raw = response.choices[0].message.content?.trim().toLowerCase().replace(/[^a-z_]/g, '') ?? '';
+    if (raw === 'lower_body') return 'lower_body';
+    if (raw === 'dresses') return 'dresses';
+    return 'upper_body';
+  } catch {
+    return 'upper_body';
+  }
 };

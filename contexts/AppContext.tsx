@@ -249,7 +249,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children, setActiveTab
         // Falls back to 'upper_body' silently on any network/timeout error.
         const category = await detectGarmentCategory(garmentDataUrl).catch(() => 'upper_body' as const);
 
-        const resultImageBase64 = await performVitonHDTryOn(job.personImage, garmentDataUrl, category);
+        const resultImageBase64 = await performVitonHDTryOn(job.personImage, garmentDataUrl, category, job.garment.name);
         
         let finalImageUrl = resultImageBase64;
         
