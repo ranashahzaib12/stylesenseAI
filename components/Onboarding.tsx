@@ -4,8 +4,8 @@ import type { QuizDetails } from '../types';
 
 const STYLE_OPTIONS: { [key: string]: string } = {
     'Casual':  'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/casual.jpg',
-    'Classic': 'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/classic.jpg',
-    'Elegant': 'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/elegant.jpg',
+    'Classic': 'https://images.pexels.com/photos/8453837/pexels-photo-8453837.jpeg?auto=compress&cs=tinysrgb&w=600',
+    'Elegant': 'https://images.pexels.com/photos/6791665/pexels-photo-6791665.jpeg?auto=compress&cs=tinysrgb&w=600',
     'Formal':  'https://res.cloudinary.com/du6dsvari/image/upload/stylesense-vibes/formal.jpg',
 };
 const GENDERS: QuizDetails['gender'][] = ['Women', 'Men', 'Prefer Not To Say'];
